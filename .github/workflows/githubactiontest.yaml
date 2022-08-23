@@ -24,16 +24,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Cache dependencies
-        id: cache
-        uses: actions/cache@v2
-        with:
-          path: ./GHAction/node_modules
-          key: modules-${{ hashFiles('package-lock.json') }}
-
-      - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+      - name: install npm
+        run: 'sudo apt update -y && sudo apt install nodejs npm -y'
 
       - name: Install AWS CDK
         run: 'sudo npm install -g aws-cdk'
