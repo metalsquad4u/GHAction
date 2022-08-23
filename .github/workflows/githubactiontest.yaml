@@ -1,44 +1,43 @@
-name: Create S3 bucket
+name: Deploy AWS CDK
 
+# Controls when the action will run. 
 on:
-  workflow_dispatch
+  #push:
+    #branches: [ main ]
+  #pull_request:
+    #branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy
+  aws_cdk:
     runs-on: ubuntu-latest
-    env:
-      environment: staging
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-1
+          aws-region: us-east-1
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: install npm
+        run: 'sudo apt update -y && sudo apt install nodejs npm -y'
 
-      # S3 bucket for Kinesis data
-      - name: Terraform Init
-        working-directory: aws_s3_bucket
-        run: |
-          terraform init \
-            -backend-config "bucket=terraform-the-hard-way" \
-            -backend-config "key=srecourse.tfstate"
-      - name: Terraform Format
-        working-directory: aws_s3_bucket
-        run: terraform fmt
+      - name: Install AWS CDK
+        run: 'sudo npm install -g aws-cdk'
 
-      - name: Terraform Plan
-        working-directory: aws_s3_bucket
-        run: terraform plan
+      - name: Install Requirements 
+        run: 'pip3 install -r requirements.txt'
+        working-directory: CDK-AWS
 
-      - name: Terraform Apply
-        working-directory: aws_s3_bucket
-        run: terraform apply -auto-approve
+      - name: CDK Synth
+        run: cdk synth
+        working-directory: CDK-AWS
+
+      - name: CDK Deploy
+        run: cdk deploy
+        working-directory: CDK-AWS
